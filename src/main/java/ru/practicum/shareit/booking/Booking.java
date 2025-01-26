@@ -1,15 +1,15 @@
 package ru.practicum.shareit.booking;
 
+import lombok.Data;
 import ru.practicum.shareit.item.model.Item;
 
 import java.time.LocalDate;
 
-/**
- * TODO Sprint add-bookings.
- */
+
+@Data
 public class Booking {
 
-    Item item;
-    LocalDate start;
-    boolean isAcceptedByOwner;
+    private Item item;
+    private LocalDate start;
+    private boolean isAcceptedByOwner;
 }

@@ -8,7 +8,6 @@ import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.UserStorage;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -57,17 +56,10 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public List<ItemDto> getItems(Long userId) {
-        List<ItemDto> itemsDto = new ArrayList<>();
-        if (userId == null) {
-            for (Item item : itemStorage.getItems()) {
-                itemsDto.add(ItemMapper.mapItemToDto(item));
-            }
-        } else {
-            for (Item item : itemStorage.getItems().stream().filter(item -> item.getOwnerId() == userId).toList()) {
-                itemsDto.add(ItemMapper.mapItemToDto(item));
-            }
-        }
-        return itemsDto;
+        return itemStorage.getItemsOfOwner(userId)
+                .stream()
+                .map(ItemMapper::mapItemToDto)
+                .toList();
     }
 
     @Override
