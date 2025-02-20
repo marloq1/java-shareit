@@ -50,7 +50,7 @@ public class ErrorHandler {
     @ExceptionHandler
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ErrorResponse handleException(final Exception e) {
-        log.error("Непредвиденная ошибка");
+        log.error("Непредвиденная ошибка",e);
         return new ErrorResponse("Error", e.getMessage()
         );
     }
