@@ -6,10 +6,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.web.servlet.MockMvc;
 import ru.practicum.shareit.booking.dto.BookingDto;
-import ru.practicum.shareit.exceptions.NotAllowedException;
-import ru.practicum.shareit.exceptions.NotFoundException;
 import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 
@@ -34,7 +33,7 @@ class ItemControllerTest {
     ObjectMapper mapper;
 
     @MockBean
-    ItemService itemService;
+    ItemClient itemClient;
 
     @Autowired
     private MockMvc mvc;
@@ -69,8 +68,8 @@ class ItemControllerTest {
 
     @Test
     void testSaveNewItem() throws Exception {
-        when(itemService.postItem(2L, itemDto))
-                .thenReturn(itemDto);
+        when(itemClient.postItem(2L, itemDto))
+                .thenReturn(ResponseEntity.ok(itemDto));
 
         mvc.perform(post("/items")
                         .content(mapper.writeValueAsString(itemDto))
@@ -88,8 +87,8 @@ class ItemControllerTest {
 
     @Test
     void testPatchNewItem() throws Exception {
-        when(itemService.patchItem(2L, itemDto, 1L))
-                .thenReturn(itemDto);
+        when(itemClient.patchItem(2L, itemDto, 1L))
+                .thenReturn(ResponseEntity.ok(itemDto));
         mvc.perform(patch("/items/1")
                         .content(mapper.writeValueAsString(itemDto))
                         .header("X-Sharer-User-Id", 2L)
@@ -106,8 +105,8 @@ class ItemControllerTest {
 
     @Test
     void testGetItems() throws Exception {
-        when(itemService.getItems(2L))
-                .thenReturn(List.of(itemDtoWithBookingAndComments));
+        when(itemClient.getItems(2L))
+                .thenReturn(ResponseEntity.ok(List.of(itemDtoWithBookingAndComments)));
         mvc.perform(get("/items")
                         .header("X-Sharer-User-Id", 2L)
                         .characterEncoding(StandardCharsets.UTF_8)
@@ -128,8 +127,8 @@ class ItemControllerTest {
 
     @Test
     void testGetItem() throws Exception {
-        when(itemService.getItem(2L, 1L))
-                .thenReturn(itemDtoWithBookingAndComments);
+        when(itemClient.getItem(2L, 1L))
+                .thenReturn(ResponseEntity.ok(itemDtoWithBookingAndComments));
         mvc.perform(get("/items/1")
                         .header("X-Sharer-User-Id", 2L)
                         .characterEncoding(StandardCharsets.UTF_8)
@@ -150,8 +149,8 @@ class ItemControllerTest {
 
     @Test
     void testSearch() throws Exception {
-        when(itemService.searchItems("item"))
-                .thenReturn(List.of(itemDto));
+        when(itemClient.searchItems("item"))
+                .thenReturn(ResponseEntity.ok(List.of(itemDto)));
         mvc.perform(get("/items/search?text=item")
                         .characterEncoding(StandardCharsets.UTF_8)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -165,8 +164,8 @@ class ItemControllerTest {
 
     @Test
     void testPostComment() throws Exception {
-        when(itemService.postComment(2L, 1L, commentDto))
-                .thenReturn(commentDto);
+        when(itemClient.postComment(2L, 1L, commentDto))
+                .thenReturn(ResponseEntity.ok(commentDto));
         mvc.perform(post("/items/1/comment")
                         .content(mapper.writeValueAsString(commentDto))
                         .header("X-Sharer-User-Id", 2L)
@@ -178,33 +177,6 @@ class ItemControllerTest {
                 .andExpect(jsonPath("$.authorName", is(commentDto.getAuthorName())))
                 .andExpect(jsonPath("$.itemId", is(commentDto.getItemId()), Long.class))
                 .andExpect(jsonPath("$.text", is(commentDto.getText())));
-    }
-
-    @Test
-    void testPostItemInvalidUser() throws Exception {
-        when(itemService.postItem(2L, itemDto))
-                .thenThrow(new NotFoundException("Пользователя с таким id нет"));
-
-        mvc.perform(post("/items")
-                        .content(mapper.writeValueAsString(itemDto))
-                        .header("X-Sharer-User-Id", 2L)
-                        .characterEncoding(StandardCharsets.UTF_8)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().is4xxClientError());
-    }
-
-    @Test
-    void testPatchNotAllowedUser() throws Exception {
-        when(itemService.patchItem(2L, itemDto, 1L))
-                .thenThrow(new NotAllowedException("Менять вещь может только ее владелец"));
-        mvc.perform(patch("/items/1")
-                        .content(mapper.writeValueAsString(itemDto))
-                        .header("X-Sharer-User-Id", 2L)
-                        .characterEncoding(StandardCharsets.UTF_8)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().is4xxClientError());
     }
 
 

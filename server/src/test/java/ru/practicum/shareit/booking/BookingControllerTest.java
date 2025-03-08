@@ -9,6 +9,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.dto.BookingRequestDto;
+import ru.practicum.shareit.exceptions.ValidationException;
 
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
@@ -124,6 +125,20 @@ class BookingControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id", is(bookingDto.getId()), Long.class))
                 .andExpect(jsonPath("$[0].status", is(bookingDto.getStatus().toString())));
+    }
+
+    @Test
+    void saveNewBookingUnavailableItem() throws Exception {
+        when(bookingService.createBooking(1L, bookingRequestDto))
+                .thenThrow(new ValidationException("Вещь нельзя забронировать"));
+
+        mvc.perform(post("/bookings")
+                        .content(mapper.writeValueAsString(bookingRequestDto))
+                        .header("X-Sharer-User-Id", 1L)
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().is4xxClientError());
     }
 
 
