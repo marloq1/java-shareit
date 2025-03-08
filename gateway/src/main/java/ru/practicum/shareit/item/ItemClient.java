@@ -1,6 +1,5 @@
 package ru.practicum.shareit.item;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.HttpStatus;
@@ -18,20 +17,17 @@ import java.util.Map;
 @Service
 public class ItemClient extends BaseClient {
 
-    private final ObjectMapper objectMapper;
 
 
     private static final String API_PREFIX = "/items";
 
-    public ItemClient(@Value("${shareit-server.url}") String serverUrl, RestTemplateBuilder builder,
-                      ObjectMapper objectMapper) {
+    public ItemClient(@Value("${shareit-server.url}") String serverUrl, RestTemplateBuilder builder) {
         super(
                 builder
                         .uriTemplateHandler(new DefaultUriBuilderFactory(serverUrl + API_PREFIX))
                         .requestFactory(() -> new HttpComponentsClientHttpRequestFactory())
                         .build()
         );
-        this.objectMapper = objectMapper;
     }
 
     public ResponseEntity<Object> postItem(Long userId, ItemDto itemDto) {
@@ -51,12 +47,13 @@ public class ItemClient extends BaseClient {
     }
 
     public ResponseEntity<Object> searchItems(String text)  {
-        Map<String, Object> parameters = Map.of(
-                "text", text
-        );
         if (text == null || text.isEmpty()) {
             return new ResponseEntity<Object>(List.of(), HttpStatus.OK);
         }
+        Map<String, Object> parameters = Map.of(
+                "text", text
+        );
+
         return get("/search?text={text}", null, parameters);
     }
 
